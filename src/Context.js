@@ -1,17 +1,40 @@
 import React, {useState, useEffect} from "react"
+
 const Context = React.createContext()
-function ContextProvider({children}){
-    const [allPhotos,setPhotos]= useState([])
-    const getData = async () =>{
-        const AllData= await fetch("https://raw.githubusercontent.com/bobziroll/scrimba-react-bootcamp-images/master/images.json")
-        const response = await AllData.json()
-        setPhotos(response)
+
+function ContextProvider({children}) {
+    const [allPhotos, setAllPhotos] = useState([])
+    const [cartItems, setCartItems] = useState([])
+    
+    const url = "https://raw.githubusercontent.com/bobziroll/scrimba-react-bootcamp-images/master/images.json"
+    useEffect(() => {
+        fetch(url)
+            .then(res => res.json())
+            .then(data => setAllPhotos(data))
+    }, [])
+    
+    function toggleFavorite(id) {
+        const updatedArr = allPhotos.map(photo => {
+            if(photo.id === id) {
+                return {...photo, isFavorite: !photo.isFavorite}
+            }
+            return photo
+        })
+        
+        setAllPhotos(updatedArr)
     }
-        useEffect(()=>{
-          getData()
-        },[])
-        return (<Context.Provider value={{allPhotos}}>
-                {children}
-            </Context.Provider>)
-        }
-export {ContextProvider,Context}
+    function removeFromCart(remove){
+        setCartItems(prevItems =>[...prevItems.filter(item=>item.id !==remove)])
+    }
+    function addToCart(newItem) {
+        setCartItems(prevItems => [...prevItems, newItem])
+    }
+    
+    return (
+        <Context.Provider value={{allPhotos, toggleFavorite, addToCart, cartItems,removeFromCart}}>
+            {children}
+        </Context.Provider>
+    )
+}
+
+export {ContextProvider, Context}
